@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>SubaruSA — Clarity Insights</title>
+<style>
+  :root{
+    --sidebar-bg:#0d1117;
+    --sidebar-border:#1c2230;
+    --accent:#3b63f0;
+    --accent-soft:#e8edfc;
+    --green:#16a34a;
+    --page-bg:#f4f6fb;
+    --card-bg:#ffffff;
+    --card-border:#e5e8f0;
+    --text-dark:#12131a;
+    --text-muted:#6b7280;
+    --text-faint:#9aa0ad;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{ scroll-behavior:smooth; }
+  body{
+    font-family: -apple-system, "Segoe UI", Inter, Helvetica, Arial, sans-serif;
+    background: var(--page-bg);
+    color: var(--text-dark);
+    display:flex;
+    min-height:100vh;
+  }
+
+  .sidebar{
+    width:260px;
+    flex-shrink:0;
+    background: var(--sidebar-bg);
+    color:#e5e7ef;
+    padding:28px 22px;
+    display:flex;
+    flex-direction:column;
+    position:fixed;
+    top:0; left:0;
+    height:100vh;
+    overflow-y:auto;
+  }
+  .brand{ margin-bottom:32px; }
+  .brand-name{ font-size:20px; font-weight:800; color:#5b82f5; letter-spacing:0.2px; }
+  .brand-tag{ font-size:10px; letter-spacing:1.5px; color:#5c6270; margin-top:4px; text-transform:uppercase; }
+
+  .side-label{
+    font-size:10px; letter-spacing:1.5px; color:#565c6b; text-transform:uppercase; margin-bottom:10px;
+  }
+  .doc-block{ margin-bottom:28px; }
+  .doc-title{ font-size:13px; font-weight:600; color:#f1f2f6; }
+
+  .nav{ display:flex; flex-direction:column; gap:4px; margin-bottom:auto; }
+  .nav-item{
+    display:flex; align-items:center; gap:10px;
+    padding:9px 10px; border-radius:8px;
+    font-size:13px; color:#a7abb8; cursor:pointer;
+    transition: background .15s ease, color .15s ease;
+    user-select:none;
+    text-decoration:none;
+  }
+  .nav-item:hover{ background:#151a24; color:#e2e4ea; }
+  .nav-item.active{ background: var(--accent); color:#fff; }
+  .nav-num{
+    font-size:10px; width:20px; height:20px; border-radius:5px;
+    display:flex; align-items:center; justify-content:center;
+    background:#1a2030; color:#8b93a8; flex-shrink:0;
+  }
+  .nav-item.active .nav-num{ background:rgba(255,255,255,.25); color:#fff; }
+
+  .sidebar-footer{
+    border-top:1px solid var(--sidebar-border);
+    padding-top:18px; margin-top:18px;
+    font-size:12px; color:#8b93a8;
+  }
+  .sidebar-footer .row{ margin-bottom:14px; }
+  .sidebar-footer .label{ color:#565c6b; font-size:10px; text-transform:uppercase; letter-spacing:1px; margin-bottom:3px;}
+  .sidebar-footer .value{ color:#e2e4ea; font-weight:600; }
+
+  .main{ flex:1; margin-left:260px; padding:56px 64px; max-width:1100px; }
+  .section{ display:block; scroll-margin-top:40px; padding-bottom:60px; }
+  .section + .section{ border-top:1px solid var(--card-border); padding-top:56px; }
+
+  .badge{
+    display:inline-flex; align-items:center; gap:8px;
+    background: var(--accent-soft); color: var(--accent);
+    font-size:12px; font-weight:600; letter-spacing:.3px;
+    padding:6px 14px; border-radius:999px; margin-bottom:20px;
+  }
+  .badge-dot{ width:6px; height:6px; border-radius:50%; background: var(--accent); }
+
+  h1{ font-size:42px; font-weight:800; line-height:1.1; letter-spacing:-1px; margin-bottom:20px;}
+  .lede{ font-size:15px; line-height:1.7; color: var(--text-muted); max-width:760px; margin-bottom:30px; }
+
+  .meta-row{ display:flex; gap:56px; padding-top:24px; border-top:1px solid var(--card-border); margin-bottom:44px; flex-wrap:wrap;}
+  .meta-item .label{ font-size:10px; text-transform:uppercase; letter-spacing:1px; color:var(--text-faint); margin-bottom:6px;}
+  .meta-item .value{ font-size:15px; font-weight:700; }
+  .meta-item .value.link{ color: var(--accent); }
+
+  .eyebrow{ font-size:12px; font-weight:700; letter-spacing:1px; color: var(--accent); text-transform:uppercase; margin-bottom:8px;}
+  h2{ font-size:26px; font-weight:800; margin-bottom:24px; letter-spacing:-.3px;}
+
+  .stat-cards{ display:grid; grid-template-columns:repeat(3,1fr); gap:20px; margin-bottom:56px; }
+  .stat-card{ background:var(--card-bg); border:1px solid var(--card-border); border-radius:14px; padding:22px 24px; }
+  .stat-card .stat-label{ font-size:10px; letter-spacing:1px; text-transform:uppercase; color:var(--text-faint); margin-bottom:10px;}
+  .stat-card .stat-num{ font-size:34px; font-weight:800; margin-bottom:6px; }
+  .stat-card .stat-num.blue{ color: var(--accent); }
+  .stat-card .stat-num.green{ color: var(--green); }
+  .stat-card .stat-sub{ font-size:13px; color: var(--text-muted); }
+
+  .timeline{ position:relative; padding-left:44px; }
+  .timeline::before{
+    content:''; position:absolute; left:15px; top:14px; bottom:14px; width:2px; background:var(--card-border);
+  }
+  .t-step{ position:relative; margin-bottom:26px; }
+  .t-num{
+    position:absolute; left:-44px; top:0; width:32px; height:32px; border-radius:50%;
+    background:#fff; border:2px solid var(--accent); color:var(--accent);
+    font-size:13px; font-weight:700; display:flex; align-items:center; justify-content:center;
+  }
+  .t-num.num-done{ border-color:#16a34a; color:#16a34a; }
+  .t-num.num-scheduled{ border-color:#e2a300; color:#e2a300; }
+  .t-card{ background:var(--card-bg); border:1px solid var(--card-border); border-radius:14px; padding:22px 24px; }
+  .t-card-head{ display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:8px; }
+  .t-card-head h3{ font-size:16px; font-weight:700; }
+  .t-week-tag{ font-size:11px; color:var(--text-faint); background:#f1f2f6; padding:3px 10px; border-radius:6px; font-weight:600; }
+  .t-week-tag.tag-done{ background:#e7f7ec; color:#16a34a; }
+  .t-week-tag.tag-scheduled{ background:#fff4e0; color:#b06b00; }
+  .chips{ display:flex; flex-wrap:wrap; gap:10px; }
+  .chip{ font-size:13px; background:#f6f7fb; border:1px solid var(--card-border); border-left:3px solid var(--card-border); padding:8px 14px; border-radius:8px; color:var(--text-dark); }
+  .chip.chip-done{ border-left-color:#16a34a; }
+  .chip.chip-scheduled{ border-left-color:#e2a300; }
+
+  .task{ background:var(--card-bg); border:1px solid var(--card-border); border-radius:14px; padding:26px 28px; margin-bottom:20px; }
+  .task-head{ display:flex; align-items:center; gap:12px; margin-bottom:6px; flex-wrap:wrap; }
+  .task-num{ width:26px; height:26px; border-radius:7px; background:var(--accent-soft); color:var(--accent); font-size:12px; font-weight:800; display:flex; align-items:center; justify-content:center; flex-shrink:0;}
+  .task-head h3{ font-size:17px; font-weight:700; }
+  .status-pill{ font-size:11px; font-weight:700; padding:3px 10px; border-radius:999px; margin-left:auto; }
+  .status-done{ background:#e7f7ec; color:#16a34a; }
+  .status-progress{ background:#fff4e0; color:#b06b00; }
+  .task-body{ font-size:13.5px; color:var(--text-muted); line-height:1.6; margin-top:10px; padding-left:38px; }
+
+  table{ width:100%; border-collapse:collapse; margin-top:12px; font-size:13px; }
+  th{ text-align:left; font-size:10px; text-transform:uppercase; letter-spacing:.5px; color:var(--text-faint); padding:8px 10px; border-bottom:1px solid var(--card-border); }
+  td{ padding:8px 10px; border-bottom:1px solid #f0f1f5; }
+  tr:last-child td{ border-bottom:none; }
+  .mono{ font-variant-numeric: tabular-nums; color:var(--text-dark); font-weight:600;}
+  .subhead{ font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:.6px; color:var(--text-faint); margin:18px 0 6px 38px; }
+
+  .form-grid{ display:grid; grid-template-columns:1fr 1fr; gap:8px 24px; margin-left:38px; margin-top:6px;}
+  .form-row{ display:flex; justify-content:space-between; font-size:13.5px; padding:6px 0; border-bottom:1px dashed #eef0f4; }
+  .form-row .n{ color:var(--text-dark); }
+  .form-row .v{ font-weight:700; color:var(--accent); }
+  .flag{ font-size:12px; color:#b06b00; font-weight:600; margin-left:38px; margin-top:4px;}
+
+  .api-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin:14px 0 8px 38px; }
+  .api-box{ background:#f6f7fb; border-radius:10px; padding:14px 16px; }
+  .api-box .k{ font-size:10px; text-transform:uppercase; color:var(--text-faint); letter-spacing:.5px; margin-bottom:4px;}
+  .api-box .v{ font-size:20px; font-weight:800; }
+
+  .issue{ background:var(--card-bg); border:1px solid var(--card-border); border-radius:14px; padding:26px 28px; margin-bottom:20px; }
+  .issue-head{ display:flex; align-items:center; gap:12px; margin-bottom:6px; flex-wrap:wrap; }
+  .issue-icon{ width:26px; height:26px; border-radius:7px; background:#fdecec; color:#dc2626; font-size:14px; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-weight:800;}
+  .issue-head h3{ font-size:17px; font-weight:700; }
+  .issue-label{ font-size:11px; font-weight:700; padding:3px 10px; border-radius:999px; margin-left:auto; background:#e7f7ec; color:#16a34a; }
+  .issue-block{ margin-left:38px; margin-top:14px; }
+  .issue-block .k{ font-size:10px; text-transform:uppercase; letter-spacing:.6px; color:var(--text-faint); margin-bottom:4px; font-weight:700; }
+  .issue-block p{ font-size:13.5px; color:var(--text-dark); line-height:1.6; margin-bottom:16px; }
+  .log-box{
+    background:#0d1117; color:#c9d1d9; font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    font-size:11.5px; line-height:1.7; border-radius:10px; padding:16px 18px; overflow-x:auto; white-space:pre;
+    margin-bottom:6px;
+  }
+  .log-ok{ color:#3fb950; }
+  .log-note{ font-size:12px; color:var(--text-faint); margin-top:6px;}
+
+  .plugin-dropdown{ margin-left:38px; margin-top:14px; }
+  .plugin-dropdown summary{
+    cursor:pointer; font-size:13px; font-weight:700; color: var(--accent);
+    list-style:none; display:flex; align-items:center; gap:6px; padding:2px 0;
+    user-select:none;
+  }
+  .plugin-dropdown summary::-webkit-details-marker{ display:none; }
+  .plugin-dropdown summary::before{
+    content:'▸'; font-size:11px; transition: transform .15s ease; display:inline-block;
+  }
+  .plugin-dropdown[open] summary::before{ transform: rotate(90deg); }
+  .plugin-dropdown table{ width:100%; margin-top:10px; background:#f6f7fb; border-radius:10px; padding:4px 6px; }
+  .plugin-dropdown th, .plugin-dropdown td{ padding:8px 14px; }
+
+  .empty-state{
+    background:var(--card-bg); border:1px dashed var(--card-border); border-radius:14px;
+    padding:36px 28px; text-align:center; color:var(--text-faint); font-size:13.5px;
+  }
+
+  .tbc{ background:#fff4e0; color:#b06b00; font-weight:700; padding:1px 6px; border-radius:4px; }
+
+  .archive-list{ display:flex; flex-direction:column; gap:12px; }
+  .archive-item{
+    display:flex; align-items:center; justify-content:space-between; gap:16px;
+    background:var(--card-bg); border:1px solid var(--card-border); border-radius:12px;
+    padding:16px 20px; text-decoration:none; color:var(--text-dark); transition: border-color .15s ease;
+  }
+  .archive-item:hover{ border-color: var(--accent); }
+  .archive-item .a-title{ font-size:14px; font-weight:700; margin-bottom:3px; }
+  .archive-item .a-meta{ font-size:12px; color:var(--text-faint); }
+  .archive-item .a-arrow{ font-size:14px; color:var(--accent); font-weight:700; flex-shrink:0; }
+
+  @media(max-width:900px){
+    body{flex-direction:column;}
+    .sidebar{position:relative; width:100%; height:auto;}
+    .main{margin-left:0; padding:32px 24px; height:auto; overflow-y:visible;}
+    .stat-cards{grid-template-columns:1fr;}
+    .meta-row{gap:28px;}
+    .api-grid{grid-template-columns:repeat(2,1fr);}
+    .form-grid{grid-template-columns:1fr;}
+  }
+
+  @media(max-width:600px){
+    .main{padding:24px 18px;}
+    h1{font-size:30px; letter-spacing:-.5px;}
+    h2{font-size:21px;}
+    .lede{font-size:14px;}
+    .badge{font-size:11px; padding:5px 12px;}
+    .meta-row{gap:20px 32px;}
+    .stat-card{padding:18px 18px;}
+    .stat-card .stat-num{font-size:28px;}
+
+    .timeline{padding-left:34px;}
+    .timeline::before{left:11px;}
+    .t-num{left:-34px; width:26px; height:26px; font-size:12px;}
+    .t-card{padding:18px 16px;}
+    .t-card-head h3{font-size:15px;}
+    .chip{font-size:12.5px; padding:8px 12px;}
+
+    .task{padding:20px 18px;}
+    .task-head h3{font-size:15.5px;}
+    .task-body{padding-left:0; margin-top:12px;}
+    .subhead{margin-left:0;}
+    .form-grid{margin-left:0;}
+    .api-grid{grid-template-columns:1fr 1fr; margin-left:0;}
+    .flag{margin-left:0;}
+    .plugin-dropdown{margin-left:0;}
+
+    .issue{padding:20px 18px;}
+    .issue-head h3{font-size:15.5px;}
+    .issue-block{margin-left:0;}
+    .log-box{font-size:10.5px; padding:12px 14px;}
+
+    table{font-size:12px;}
+    th, td{padding:7px 8px;}
+
+    .archive-item{flex-direction:column; align-items:flex-start; gap:6px;}
+  }
+</style>
+</head>
+<body>
+
+  <div class="sidebar">
+    <div class="brand">
+      <div class="brand-name">Algorithm</div>
+      <div class="brand-tag">Turn potential into performance</div>
+    </div>
+
+    <div class="side-label">Document</div>
+    <div class="doc-block">
+      <div class="doc-title">SubaruSA — Clarity Insights</div>
+    </div>
+
+    <div class="side-label">Sections</div>
+    <div class="nav">
+      <a class="nav-item active" href="#overview" data-section="overview"><span class="nav-num">01</span> Overview</a>
+      <a class="nav-item" href="#behaviour" data-section="behaviour"><span class="nav-num">02</span> How visitors behave</a>
+      <a class="nav-item" href="#faults" data-section="faults"><span class="nav-num">03</span> Faults identified</a>
+      <a class="nav-item" href="#forms" data-section="forms"><span class="nav-num">04</span> Form data capture</a>
+      <a class="nav-item" href="#performance" data-section="performance"><span class="nav-num">05</span> Page performance</a>
+      <a class="nav-item" href="#recommend" data-section="recommend"><span class="nav-num">06</span> Recommendations</a>
+      <a class="nav-item" href="#open" data-section="open"><span class="nav-num">07</span> Open items &amp; baseline</a>
+    </div>
+
+    <div class="sidebar-footer">
+      <div class="row"><div class="label">Reported by</div><div class="value">Algorithm</div></div>
+      <div class="row"><div class="label">Period analysed</div><div class="value">24 June 2026 – 21 September 2026</div></div>
+      <div class="row"><div class="label">Reference</div><div class="value">SUBARUSA-CLARITY-01</div></div>
+    </div>
+  </div>
+
+  <div class="main">
+
+    <!-- SECTION 1 -->
+    <div class="section" id="overview">
+      <div class="badge"><span class="badge-dot"></span>Behavioural Analytics Audit · Subaru</div>
+      <h1>SubaruSA — Clarity Insights</h1>
+      <p class="lede">
+        Ninety days of Microsoft Clarity data for subaru.co.za, read across session insights, click and tap heatmaps,
+        JavaScript error logs, session recordings and Core Web Vitals field data. The audit identifies six faults where
+        visitors interact with the site and nothing happens. The largest sits on <strong>/deal-assist/</strong>, which
+        takes 44% of all site traffic: a single non-interactive container directly beneath the header absorbs
+        <strong>38.91% of every tap on the page</strong> — 4,534 taps across 33,467 mobile pageviews. Overall engagement
+        on that page is 0.35 taps per pageview and 99.2% of visitors leave from the page they arrived on. Five further
+        faults affect the showroom and pre-owned templates, and a group of globally-loaded scripts accounts for 84% of
+        all JavaScript errors recorded on the site.
+      </p>
+
+      <div class="meta-row">
+        <div class="meta-item"><div class="label">Reported by</div><div class="value">Algorithm</div></div>
+        <div class="meta-item"><div class="label">Period analysed</div><div class="value">24 Jun – 21 Sep 2026</div></div>
+        <div class="meta-item"><div class="label">Reference</div><div class="value">SUBARUSA-CLARITY-01</div></div>
+        <div class="meta-item"><div class="label">Scope</div><div class="value link">www.subaru.co.za</div></div>
+      </div>
+
+      <div class="eyebrow">Section 01 · At a glance</div>
+      <h2>Where things stand</h2>
+      <div class="stat-cards">
+        <div class="stat-card">
+          <div class="stat-label">Sessions analysed</div>
+          <div class="stat-num blue">56,835</div>
+          <div class="stat-sub">Production only, 90 days. 43,103 unique users, 82% new</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Sessions with dead clicks</div>
+          <div class="stat-num blue">4,204</div>
+          <div class="stat-sub">7.40% overall — but 13.3% once single-page landing traffic is excluded</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Faults confirmed</div>
+          <div class="stat-num green">6</div>
+          <div class="stat-sub">Each tied to a named element or error string with measured interaction volume</div>
+        </div>
+      </div>
+
+      <div class="eyebrow">Section 01 · Method</div>
+      <h2>How this was measured</h2>
+      <div class="task">
+        <div class="task-head">
+          <div class="task-num">i</div>
+          <h3>Data sources and filtering</h3>
+        </div>
+        <div class="task-body">
+          Microsoft Clarity project SubaruSA, filtered to the production domain only. Four other Subaru environments
+          were found reporting into a separate Clarity project and have been excluded — see Open items. Heatmap filters
+          use regex matching that includes query strings; filtering on exact URL excludes all campaign arrivals and
+          understates affected pages by more than an order of magnitude. Extreme LCP outliers in the raw field data are
+          backgrounded-tab artefacts and have been discarded. Gravity Forms entry exports were used to validate the
+          behavioural findings, not to assess campaign performance.
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 2 -->
+    <div class="section" id="behaviour">
+      <div class="eyebrow">Section 02 · Patterns</div>
+      <h2>How visitors behave</h2>
+
+      <div class="task">
+        <div class="task-head">
+          <div class="task-num">A</div>
+          <h3>Three audiences, three ways of failing them</h3>
+          <span class="status-pill status-done">Measured</span>
+        </div>
+        <div class="task-body">
+          Comparing sessions that contained at least one dead click, across the three page types that carry the most
+          traffic. The figures describe very different problems on each.
+        </div>
+        <div class="subhead">Dead-click session profile</div>
+        <table style="margin-left:38px; width:calc(100% - 38px);">
+          <tr>
+            <th>&nbsp;</th><th>Deal Assist</th><th>Forester</th><th>Pre-owned</th>
+          </tr>
+          <tr><td>Sessions</td><td class="mono">730</td><td class="mono">964</td><td class="mono">335</td></tr>
+          <tr><td>Median duration</td><td class="mono">1:55</td><td class="mono">5:16</td><td class="mono">6:14</td></tr>
+          <tr><td>Median clicks</td><td class="mono">6</td><td class="mono">16</td><td class="mono">24</td></tr>
+          <tr><td>Mean clicks</td><td class="mono">15.1</td><td class="mono">24.1</td><td class="mono">32.8</td></tr>
+          <tr><td>Single-page sessions</td><td class="mono">50%</td><td class="mono">19%</td><td class="mono">1%</td></tr>
+          <tr><td>Device mix</td><td class="mono">99% mobile</td><td class="mono">55% mobile</td><td class="mono">Even split</td></tr>
+        </table>
+        <div class="task-body">
+          <strong>Deal Assist fails by inertia.</strong> Visitors arrive, half never reach a second page, and the median
+          session is under two minutes. Total engagement is 0.35 taps per pageview — most people touch nothing at all.
+          <br><br>
+          <strong>Forester fails by exhaustion.</strong> Five minutes, sixteen clicks, three pages, then 60% exit from
+          the page they were on. The click distribution is the giveaway: 109 sessions recorded more than 50 clicks, 23
+          recorded more than 100, and one session recorded 267. That is not browsing.
+          <br><br>
+          <strong>Pre-owned visitors are the most engaged on the site.</strong> Six minutes, seven pages, twenty-four
+          clicks, arriving mostly from Google and Bing. They are the closest visitors to a purchase decision, and the
+          image gallery on the vehicle they are viewing does not advance.
+          <br><br>
+          The pattern across all three: the more intent a visitor has, the longer they will persist against an
+          unresponsive interface before leaving.
+        </div>
+      </div>
+
+      <div class="task">
+        <div class="task-head">
+          <div class="task-num">B</div>
+          <h3>Interaction rate by page</h3>
+          <span class="status-pill status-done">Measured</span>
+        </div>
+        <div class="task-body">
+          Taps or clicks per pageview is the clearest single indicator. A healthy page sits close to 1. Well below that
+          means visitors are not engaging; well above means they are repeating actions that are not working.
+        </div>
+        <div class="api-grid">
+          <div class="api-box"><div class="k">Deal Assist · mobile</div><div class="v">0.35</div></div>
+          <div class="api-box"><div class="k">Pre-owned listing</div><div class="v">0.87</div></div>
+          <div class="api-box"><div class="k">Pre-owned detail · desktop</div><div class="v">3.8</div></div>
+          <div class="api-box"><div class="k">Forester · desktop</div><div class="v">10.1</div></div>
+        </div>
+        <div class="flag">The pre-owned listing page is the only one in a normal range. It is also the only page of the four with no confirmed fault.</div>
+      </div>
+    </div>
+
+    <!-- SECTION 3 -->
+    <div class="section" id="faults">
+      <div class="eyebrow">Section 03 · Findings</div>
+      <h2>Faults identified</h2>
+
+      <!-- FAULT 1 -->
+      <div class="task">
+        <div class="task-head">
+          <div class="task-num">1</div>
+          <h3>Dead container absorbing 39% of taps — Deal Assist</h3>
+          <span class="status-pill status-progress">Critical</span>
+        </div>
+        <div class="task-body">
+          <code>/deal-assist/</code> takes 25,125 sessions, 44% of all traffic on the site and more than three times the
+          homepage. It is 99% mobile — 33,467 mobile pageviews against 314 desktop. Of 11,652 recorded taps, 4,534 land
+          on a single non-interactive container positioned directly beneath the header.
+          <br><br>
+          Visitors are tapping the container itself rather than any link inside it, which indicates there is nothing
+          inside it to tap. It is the first element a mobile visitor sees, it reads as a button, and pressing it does
+          nothing. A further ~670 taps land on static <code>IMG</code> elements and on headings being tapped as buttons.
+        </div>
+        <div class="subhead">Element</div>
+        <div class="log-box">DIV.elementor-element.e-con-full.elementor-hidden-desktop.e-flex.e-con.e-parent:nth-of-type(2)
+  &gt; DIV.elementor-element.e-con-full.e-flex.e-con.e-child:nth-of-type(1)</div>
+        <div class="log-note">4,534 taps · 38.91% of all taps on the page · mobile only</div>
+      </div>
+
+      <!-- FAULT 2 -->
+      <div class="task">
+        <div class="task-head">
+          <div class="task-num">2</div>
+          <h3>Used-vehicle photo gallery does not advance</h3>
+          <span class="status-pill status-progress">Critical</span>
+        </div>
+        <div class="task-body">
+          On pre-owned detail pages, <code>BUTTON.owl-next</code> receives 3.1 clicks per pageview and roughly 80% of all
+          clicks on the page. The previous arrow receives 90. A functioning gallery runs at about 3:1 next-to-previous;
+          31:1 indicates repeated pressing on a control that is not responding. Mobile shows the same pattern at 17.5:1.
+          <br><br>
+          This is an Owl Carousel, a different library from the Swiper used on the showroom pages, so it is a second
+          carousel fault rather than the same one twice. For scale, the <code>A.view-vehicle</code> call to action on the
+          same page receives 68 desktop clicks — the broken arrow outdraws it forty to one.
+        </div>
+        <div class="api-grid">
+          <div class="api-box"><div class="k">Next · desktop</div><div class="v">2,792</div></div>
+          <div class="api-box"><div class="k">Prev · desktop</div><div class="v">90</div></div>
+          <div class="api-box"><div class="k">Ratio</div><div class="v">31:1</div></div>
+          <div class="api-box"><div class="k">Pageviews</div><div class="v">906</div></div>
+        </div>
+      </div>
+
+      <!-- FAULT 3 -->
+      <div class="task">
+        <div class="task-head">
+          <div class="task-num">3</div>
+          <h3>Elementor grade tabs throw on load</h3>
+          <span class="status-pill status-progress">High</span>
+        </div>
+        <div class="task-body">
+          The Premium / Sport / Field / Touring / Comparison selector — the control a buyer uses to choose a trim — throws
+          on every page load. Chrome reports <code>cannot read properties of null (reading 'getAttribute')</code>; Firefox
+          gives the more useful <code>tabTitleElement is null</code>. Combined, these are 33.8% of all JavaScript errors
+          recorded on the site, making this the largest single error source.
+          <br><br>
+          Worth checking while in there: the anchor <code>#forester-field-New</code> uses a capital N where every sibling
+          uses <code>-new</code>, and it receives roughly a third of the clicks its siblings do.
+        </div>
+        <div class="flag">~1,500 desktop and ~1,100 mobile interactions across the four showroom pages.</div>
+      </div>
+
+      <!-- FAULT 4 -->
+      <div class="task">
+        <div class="task-head">
+          <div class="task-num">4</div>
+          <h3>Broken scripts load site-wide, including on pages that do not use them</h3>
+          <span class="status-pill status-progress">High</span>
+        </div>
+        <div class="task-body">
+          Deal Assist is a form page. It carries no vehicle cards, no grade tabs and no 360° viewer. Its error log
+          contains all of them. This tells us the scripts are being enqueued globally from the theme or header rather
+          than by the templates that need them — so this is one fix with sitewide benefit rather than several page-level
+          repairs.
+          <br><br>
+          The duplicate-declaration error is the cheapest item in this report: a script parsed twice on the same page,
+          typically once via <code>functions.php</code> and once pasted into an HTML widget or header code box. A
+          half-initialised script is also the most probable cause of <code>_self.view is not a function</code>.
+        </div>
+        <div class="subhead">Error distribution on /deal-assist/</div>
+        <table style="margin-left:38px; width:calc(100% - 38px);">
+          <tr><th>Error</th><th>Share</th></tr>
+          <tr><td>Elementor tabs (<code>getAttribute</code> / <code>tabTitleElement</code>)</td><td class="mono">33.8%</td></tr>
+          <tr><td><code>_self.view is not a function</code></td><td class="mono">22.1%</td></tr>
+          <tr><td><code>identifier 'targetNode' has already been declared</code></td><td class="mono">15.4%</td></tr>
+          <tr><td>Elementor popup <code>querySelector</code> failure</td><td class="mono">13.2%</td></tr>
+          <tr><td>Remaining errors</td><td class="mono">15.5%</td></tr>
+        </table>
+        <div class="flag">Four faults account for 84% of all JavaScript errors recorded.</div>
+      </div>
+
+      <!-- FAULT 5 -->
+      <div class="task">
+        <div class="task-head">
+          <div class="task-num">5</div>
+          <h3>360° viewer never initialises</h3>
+          <span class="status-pill status-progress">Medium</span>
+        </div>
+        <div class="task-body">
+          Three errors point at the same feature: <code>isVrModeRequested is not defined</code>,
+          <code>$threesixty.threesixty is not a function</code> — the jQuery plugin failing to register at all — and heavy
+          interaction with krpano panorama containers on the showroom pages. The Forester page carries four separate
+          krpano instances, which is also a meaningful load cost on a template already running two seconds slower than
+          the site's content pages.
+        </div>
+        <div class="flag">3,028 desktop clicks across the four panorama instances, plus ~700 mobile taps on the colour swatches.</div>
+      </div>
+
+      <!-- FAULT 6 -->
+      <div class="task">
+        <div class="task-head">
+          <div class="task-num">6</div>
+          <h3>Popup is the most-tapped element on the Forester page</h3>
+          <span class="status-pill status-progress">Medium</span>
+        </div>
+        <div class="task-body">
+          Counting the close button, its icon, the overlay and the popup body, roughly one tap in eight on the most
+          important model page is someone dismissing an overlay — 1,201 mobile taps, 12.5% of all taps on the page.
+          <br><br>
+          Separately, <code>failed to execute 'querySelector'</code> fires because an
+          <code>#elementor-action:...popup:open</code> href is being passed into a selector lookup, almost certainly by a
+          smooth-scroll handler grabbing every <code>a[href^="#"]</code>. A second error,
+          <code>popup.getModal is not a function</code>, points at the same feature.
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 4 -->
+    <div class="section" id="forms">
+      <div class="eyebrow">Section 04 · Validation</div>
+      <h2>Form data capture</h2>
+
+      <div class="task">
+        <div class="task-head">
+          <div class="task-num">1</div>
+          <h3>Testing the diagnosis against form entries</h3>
+          <span class="status-pill status-done">Confirmed</span>
+        </div>
+        <div class="task-body">
+          Clarity measures behaviour, not outcomes. To check whether the dead container is genuinely the problem —
+          rather than the form, the platform or the audience — we compared entry counts on the two lead forms over the
+          same period. Both run on the same Gravity Forms install with the same dealer selector.
+        </div>
+        <div class="form-grid">
+          <div class="form-row"><span class="n">Book a test drive — sessions</span><span class="v">872</span></div>
+          <div class="form-row"><span class="n">Book a test drive — genuine entries</span><span class="v">14</span></div>
+          <div class="form-row"><span class="n">Deal Assist — mobile sessions</span><span class="v">~33,000</span></div>
+          <div class="form-row"><span class="n">Deal Assist — genuine entries</span><span class="v">9</span></div>
+        </div>
+        <div class="task-body">
+          The test-drive page converts at a normal rate for an automotive enquiry form. Deal Assist receives roughly 38
+          times the traffic and produces fewer entries. That confirms the diagnosis: the form works — eleven submit taps
+          produced twelve entries, so submission, validation and dealer capture all function correctly. The failure is
+          upstream, at the point where visitors try to interact with the page.
+        </div>
+        <div class="flag">Separately: the earliest Deal Assist entry is dated 1 September, with none before it, despite the page receiving traffic throughout. Worth establishing whether the form was absent, hidden or failing before that date.</div>
+      </div>
+
+      <div class="task">
+        <div class="task-head">
+          <div class="task-num">2</div>
+          <h3>Two fields have never captured data</h3>
+          <span class="status-pill status-progress">Needs fixing</span>
+        </div>
+        <div class="task-body">
+          <strong>Vehicle Model</strong> is empty on all 93 entries across both forms, for the entire history of both. A
+          second field, <code>Select Your Model</code>, populates correctly on every entry — so there are two model
+          fields and one of them has never worked. Given the pattern of scripts failing site-wide, a hidden field
+          populated by JavaScript that never runs is the likely explanation.
+          <br><br>
+          <strong>GA Client ID</strong> is empty on all 48 Deal Assist entries and on 26 of 45 test-drive entries. This
+          hidden field ties a submission back to its GA4 session. Without it, form submissions cannot be joined to the
+          sessions that produced them, which affects any reporting on where enquiries originate.
+        </div>
+        <div class="flag">Roughly half of all entries on both forms are internal test submissions. Anyone counting entries to judge performance is counting test data alongside genuine enquiries.</div>
+      </div>
+    </div>
+
+    <!-- SECTION 5 -->
+    <div class="section" id="performance">
+      <div class="eyebrow">Section 05 · Core Web Vitals</div>
+      <h2>Page performance</h2>
+
+      <div class="task">
+        <div class="task-head">
+          <div class="task-num">1</div>
+          <h3>Field data by page</h3>
+          <span class="status-pill status-done">Measured</span>
+        </div>
+        <div class="task-body">
+          Site-wide: performance score 68.2, LCP 5.39s, INP 336ms, CLS 0.002. Google's thresholds are LCP under 2.5s,
+          INP under 200ms and CLS under 0.1.
+        </div>
+        <table style="margin-left:38px; width:calc(100% - 38px);">
+          <tr><th>Page</th><th>Score</th><th>LCP</th><th>INP</th></tr>
+          <tr><td>/deal-assist/</td><td class="mono">63.0</td><td class="mono">6.79s</td><td class="mono">464ms</td></tr>
+          <tr><td>/contact-us/book-a-test-drive/</td><td class="mono">64.2</td><td class="mono">5.11s</td><td class="mono">392ms</td></tr>
+          <tr><td>/showroom/forester/</td><td class="mono">67.7</td><td class="mono">4.43s</td><td class="mono">408ms</td></tr>
+          <tr><td>/showroom/wrx/</td><td class="mono">67.9</td><td class="mono">4.50s</td><td class="mono">472ms</td></tr>
+          <tr><td>/showroom/crosstrek/</td><td class="mono">68.9</td><td class="mono">4.56s</td><td class="mono">408ms</td></tr>
+          <tr><td>/pre-owned-vehicles/</td><td class="mono">73.9</td><td class="mono">4.82s</td><td class="mono">248ms</td></tr>
+          <tr><td>/service-and-parts/subaru-service-booking/</td><td class="mono">78.0</td><td class="mono">3.90s</td><td class="mono">232ms</td></tr>
+          <tr><td>Content page (owner story)</td><td class="mono">95.0</td><td class="mono">1.70s</td><td class="mono">104ms</td></tr>
+        </table>
+        <div class="task-body">
+          The last row is the important one. A content page on identical hosting, theme and platform reaches 95 out of
+          100 with a 1.7-second load. There is no infrastructure problem to solve — the showroom template consistently
+          costs about two extra seconds and roughly triples interaction latency, and that penalty tracks with the
+          widgets identified in Section 03.
+          <br><br>
+          On Deal Assist, performance is a contributing factor rather than the cause. A 6.79-second load on a page taking
+          mobile traffic loses visitors before the dead container gets its chance.
+        </div>
+      </div>
+
+      <div class="task">
+        <div class="task-head">
+          <div class="task-num">2</div>
+          <h3>Layout shift on pre-owned detail pages</h3>
+          <span class="status-pill status-progress">Needs fixing</span>
+        </div>
+        <div class="task-body">
+          Site-wide CLS reads 0.002, which looks perfect, but the average conceals the problem. Individual pre-owned
+          detail pages record 1.108, 0.865 and 0.728 against a 0.1 threshold — vehicle images rendering without width and
+          height attributes, almost certainly arriving that way from the AutoTrader feed. Content moves under the
+          reader's finger as photos load, on the pages where the most engaged visitors spend six minutes.
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 6 -->
+    <div class="section" id="recommend">
+      <div class="eyebrow">Section 06 · Actions</div>
+      <h2>Recommendations</h2>
+
+      <div class="timeline">
+        <div class="t-step">
+          <div class="t-num num-scheduled">1</div>
+          <div class="t-card">
+            <div class="t-card-head"><h3>Diagnose the Deal Assist container on a device</h3><span class="t-week-tag tag-scheduled">Minutes</span></div>
+            <div class="chips">
+              <div class="chip chip-scheduled">Load the page on a phone and tap the element</div>
+              <div class="chip chip-scheduled">Establish whether it is a broken link, a styled div, or an overlay</div>
+              <div class="chip chip-scheduled">Highest-value action available; needs no further data</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="t-step">
+          <div class="t-num num-scheduled">2</div>
+          <div class="t-card">
+            <div class="t-card-head"><h3>Confirm when the Deal Assist form went live</h3><span class="t-week-tag tag-scheduled">Minutes</span></div>
+            <div class="chips">
+              <div class="chip chip-scheduled">No entries exist before 1 September despite steady traffic</div>
+              <div class="chip chip-scheduled">Determine whether the form was absent, hidden or failing</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="t-step">
+          <div class="t-num num-scheduled">3</div>
+          <div class="t-card">
+            <div class="t-card-head"><h3>Fix the Owl Carousel on pre-owned detail pages</h3><span class="t-week-tag tag-scheduled">Small – medium</span></div>
+            <div class="chips">
+              <div class="chip chip-scheduled">3.1 clicks per pageview on one arrow, 31:1 against previous</div>
+              <div class="chip chip-scheduled">Blocks the site's highest-intent audience at the point of viewing the car</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="t-step">
+          <div class="t-num num-scheduled">4</div>
+          <div class="t-card">
+            <div class="t-card-head"><h3>Remove the duplicate script load</h3><span class="t-week-tag tag-scheduled">Small</span></div>
+            <div class="chips">
+              <div class="chip chip-scheduled">View source and locate the script enqueued twice</div>
+              <div class="chip chip-scheduled">Likely resolves ~15% of all errors and may fix the vehicle handler</div>
+              <div class="chip chip-scheduled">Best ratio of value to effort in this list</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="t-step">
+          <div class="t-num num-scheduled">5</div>
+          <div class="t-card">
+            <div class="t-card-head"><h3>Repair GA Client ID and Vehicle Model capture</h3><span class="t-week-tag tag-scheduled">Small</span></div>
+            <div class="chips">
+              <div class="chip chip-scheduled">GA Client ID: restore session-to-submission linkage in GA4</div>
+              <div class="chip chip-scheduled">Vehicle Model: wire up or remove — 93 entries, never populated</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="t-step">
+          <div class="t-num num-scheduled">6</div>
+          <div class="t-card">
+            <div class="t-card-head"><h3>Fix the Elementor tabs and popup trigger</h3><span class="t-week-tag tag-scheduled">Medium</span></div>
+            <div class="chips">
+              <div class="chip chip-scheduled">Resolve why tabTitleElement is null</div>
+              <div class="chip chip-scheduled">Correct the #forester-field-New casing</div>
+              <div class="chip chip-scheduled">Exclude [href^="#elementor-action"] from the scroll handler</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="t-step">
+          <div class="t-num num-scheduled">7</div>
+          <div class="t-card">
+            <div class="t-card-head"><h3>Restore the 360° viewer</h3><span class="t-week-tag tag-scheduled">Medium</span></div>
+            <div class="chips">
+              <div class="chip chip-scheduled">Confirm the krpano VR module is enqueued and its config resolves</div>
+              <div class="chip chip-scheduled">Establish why $threesixty fails to register</div>
+              <div class="chip chip-scheduled">Review whether four panorama instances per page is intentional</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="t-step">
+          <div class="t-num num-scheduled">8</div>
+          <div class="t-card">
+            <div class="t-card-head"><h3>Performance and layout shift</h3><span class="t-week-tag tag-scheduled">Medium</span></div>
+            <div class="chips">
+              <div class="chip chip-scheduled">Deal Assist: 6.79s LCP, 464ms INP on the busiest page</div>
+              <div class="chip chip-scheduled">Pre-owned template: add width and height to AutoTrader feed images</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 7 -->
+    <div class="section" id="open">
+      <div class="eyebrow">Section 07 · Unresolved</div>
+      <h2>Open items &amp; baseline</h2>
+
+      <div class="issue">
+        <div class="issue-head">
+          <div class="issue-icon">!</div>
+          <h3>#toggleName — unverified</h3>
+          <span class="issue-label" style="background:#fff4e0; color:#b06b00;">Needs a dead-click filter</span>
+        </div>
+        <div class="issue-block">
+          <div class="k">What we know</div>
+          <p>
+            <code>#toggleName</code> is the single most-interacted element on the showroom pages — 4,814 mobile taps and
+            2,775 desktop clicks across the four model pages, ahead of the tabs, the 360° viewer and everything else.
+            Interaction volume that high has indicated a fault everywhere else on this site, but we have not yet
+            confirmed it. Re-running the showroom heatmap with a dead-click filter applied will settle it.
+          </p>
+        </div>
+      </div>
+
+      <div class="issue">
+        <div class="issue-head">
+          <div class="issue-icon">!</div>
+          <h3>Other Subaru environments in the analytics estate</h3>
+          <span class="issue-label" style="background:#fdecec; color:#dc2626;">Outside our scope</span>
+        </div>
+        <div class="issue-block">
+          <div class="k">What we found</div>
+          <p>
+            A separate Clarity project was receiving traffic from <code>www.staging.subaru.co.za</code>,
+            <code>newsubaru.clippingpointdev.co.za</code>, <code>subaru.clippingpointdev.co.za</code> and
+            <code>subaru.pixelme.co.za</code>. None of these are environments we build or maintain. The staging site
+            scores 38 out of 100 and is publicly reachable; pixelme serves showroom and test-drive pages that duplicate
+            the live site. Both are search-visibility exposures for subaru.co.za regardless of who owns them, and the
+            client should confirm who runs them and whether they should remain live.
+          </p>
+          <div class="k">Related</div>
+          <p>
+            <code>www.subaru.co.za</code> previously appeared as its own referrer on 27% of sessions — visitors crossing
+            between Subaru domains mid-session, each crossing starting a new attributed session. The same distortion will
+            be present in GA4. Two Clarity projects, "Subaru" and "SubaruSA", are also tracking the same site over the
+            same period and reporting different numbers; one should be retired.
+          </p>
+        </div>
+      </div>
+
+      <div class="issue">
+        <div class="issue-head">
+          <div class="issue-icon">?</div>
+          <h3>Unresolved errors and unexplained pages</h3>
+          <span class="issue-label" style="background:#f1f2f6; color:#6b7280;">Investigating</span>
+        </div>
+        <div class="issue-block">
+          <div class="k">Still open</div>
+          <p>
+            A cross-origin <code>script error.</code> and a JSON-LD <code>@context</code> failure remain undiagnosed;
+            neither appears to block a user-facing action. Separately, 28 of 48 all-time entries on the Deal Assist form
+            originate from <code>/fall-in-love-with-subaru/</code>, a page that does not appear anywhere in the Clarity
+            traffic data — same form, three times the volume, worth understanding.
+          </p>
+        </div>
+      </div>
+
+      <div class="issue">
+        <div class="issue-head">
+          <div class="issue-icon">=</div>
+          <h3>Baseline for the next audit</h3>
+          <span class="issue-label">Recorded 21 September 2026</span>
+        </div>
+        <div class="issue-block">
+          <div class="k">Measured now, to compare against after fixes land</div>
+          <p>
+            These are the figures to re-run once remediation is complete. Without a recorded baseline, the next audit
+            becomes an argument about whether anything improved.
+          </p>
+        </div>
+        <div class="api-grid" style="margin-left:38px;">
+          <div class="api-box"><div class="k">Dead-click sessions</div><div class="v">7.40%</div></div>
+          <div class="api-box"><div class="k">Performance score</div><div class="v">68.2</div></div>
+          <div class="api-box"><div class="k">Site-wide LCP</div><div class="v">5.39s</div></div>
+          <div class="api-box"><div class="k">Deal Assist taps/view</div><div class="v">0.35</div></div>
+        </div>
+        <div class="issue-block">
+          <div class="k">Also worth tracking</div>
+          <p>
+            Quick-back rate 7.92% · rage-click rate 0.24% · site-wide INP 336ms · Forester desktop interaction rate 10.1
+            clicks per pageview · pre-owned next-arrow ratio 31:1 · share of JavaScript errors attributable to the four
+            named faults, currently 84%.
+          </p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+
+<script>
+  const navItems = document.querySelectorAll('.nav-item');
+  const sections = document.querySelectorAll('.section');
+
+  navItems.forEach(item=>{
+    item.addEventListener('click', ()=>{
+      navItems.forEach(i=>i.classList.remove('active'));
+      item.classList.add('active');
+    });
+  });
+
+  const MARKER = 120;
+
+  function updateActiveSection(){
+    let currentId = sections[0].id;
+    sections.forEach(section=>{
+      const rect = section.getBoundingClientRect();
+      if(rect.top - MARKER <= 0){
+        currentId = section.id;
+      }
+    });
+    navItems.forEach(i=>{
+      i.classList.toggle('active', i.dataset.section === currentId);
+    });
+  }
+
+  let ticking = false;
+  window.addEventListener('scroll', ()=>{
+    if(!ticking){
+      window.requestAnimationFrame(()=>{
+        updateActiveSection();
+        ticking = false;
+      });
+      ticking = true;
+    }
+  });
+
+  updateActiveSection();
+</script>
+
+</body>
+</html>
